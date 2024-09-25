@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Vocabulary</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: space-between;
+            flex-direction: column;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        :root {
+            --bg-color: #333;
+            --text-color: #fff;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #f4f4f4;
+            --text-color: #000;
+        }
+
+        #quiz-container {
+            margin: 0 auto;
+            padding: 0;
+            background-color: #fff;
+            border-radius: 8px;
+            width: 100%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        #question {
+            font-size: 100px;
+            margin-bottom: 20px;
+            color: #fff;
+            background-color: #7a1fc7;
+            padding: 50px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        #answer,
+        #submit {
+            display: none;
+        }
+
+        #title {
+            font-size: 100px;
+            margin-bottom: 20px;
+            color: #7a1fc7;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        select {
+            width: 100%;
+            font-size: 20px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            padding: 15px;
+            margin-top: 10px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 15px;
+            font-size: 20px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .error {
+            color: red;
+            font-size: 20px;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+
+        #data-link {
+            margin-top: 20px;
+            font-size: 20px;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        #data-link:hover {
+            text-decoration: underline;
+        }
+
+        #mastery-levels {
+            margin-top: 20px;
+            font-size: 20px;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #mastery-levels span {
+            font-weight: bold;
+            color: #7a1fc7;
+            margin: 5px 0;
+            align-items: center;
+        }
+
+        #home {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 5px;
+            width: 40px;
+            height: 40px;
+            display: none;
+            background-color: transparent;
+            z-index: 9999;
+        }
+
+        #home img {
+            width: 30px;
+            height: 30px;
+        }
+
+        #themeToggle {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            cursor: pointer;
+            background-color: transparent;
+            border: none;
+            padding: 0;
+            display: block;
+            cursor: pointer;
+            z-index: 9998;
+        }
+
+        #themeToggle img {
+            width: 30px;
+            height: 30px;
+            display: block;
+        }
+
+        #result p {
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        h2 {
+            font-size: 80px;
+            text-align: center;
+        }
+
+        label {
+            font-size: 24px;
+            margin-top: 15px;
+            display: block;
+        }
+
+        #kanji-list {
+            display: none;
+            /* Hide the kanji list */
+            color: var(--bg-color);
+        }
+    </style>
+    <script src="https://unpkg.com/wanakana"></script>
+</head>
+
+<body data-theme="light">
+
+    <button id="themeToggle"><img src="https://img.icons8.com/?size=100&id=H3yHeysB1dxv&format=png&color=000000"
+            alt="Light Mode"></button>
+
+    <div id="login-container">
+        <h2>Login</h2>
+        <label for="userIdDropdown">User ID:</label>
+        <select id="userIdDropdown">
+            <option value="" selected disabled>Pilih User ID</option>
+            <option value="new">New ID</option>
+        </select>
+        <div id="newIdContainer" style="display: none;">
+            <input type="text" id="userId" placeholder="Enter your new ID">
+            <label for="password">Password:</label>
+            <input type="password" id="password" placeholder="Enter your password">
+        </div>
+        <div id="existingPasswordContainer" style="display: none;">
+            <label for="password">Password:</label>
+            <input type="password" id="passwordExisting" placeholder="Enter your password">
+        </div>
+        <div id="passwordError" class="error"></div>
+        <button id="loginButton">Login</button>
+    </div>
+
+    <div id="quiz-container" style="display: none;">
+        <button id="home"><img src="https://img.icons8.com/?size=100&id=2797&format=png&color=FFFFFF" alt="Home"
+                sizes="30px"></button>
+        <div id="title">Quiz</div>
+        <div id="mastery-levels"></div>
+        <button id="start">Mulai</button>
+        <div id="question"></div>
+        <div id="answer">
+            <label for="response">Your Response</label>
+            <input type="text" id="response" placeholder="Type the answer">
+        </div>
+        <button id="submit">Submit</button>
+        <div id="result"></div>
+        <!-- Hidden Kanji list will appear here -->
+        <div id="kanji-list"></div>
+    </div>
+
+    <script>
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let retryQuestions = [];
+        let kanjiProgress = {};
+        let isAnswered = false;
+        let maxKanji = 100;
+        let totalQuestions = maxKanji * 2;
+        let correctAnswersCount = 0;
+
+        function getStoredUsers() {
+            const users = localStorage.getItem('users');
+            return users ? JSON.parse(users) : {};
+        }
+
+        function addUser(userId, password) {
+            const users = getStoredUsers();
+            if (users[userId]) {
+                document.getElementById('passwordError').textContent = "ID already taken. Please choose a different ID.";
+                return false;
+            } else {
+                users[userId] = password;
+                localStorage.setItem('users', JSON.stringify(users));
+                return true;
+            }
+        }
+
+        function populateUserIdDropdown() {
+            const userIdDropdown = document.getElementById('userIdDropdown');
+            const users = getStoredUsers();
+            Object.keys(users).forEach(id => {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = id;
+                userIdDropdown.appendChild(option);
+            });
+        }
+
+        document.getElementById('userIdDropdown').onchange = function () {
+            const selectedId = document.getElementById('userIdDropdown').value;
+            if (selectedId === "new") {
+                document.getElementById('newIdContainer').style.display = 'block';
+                document.getElementById('existingPasswordContainer').style.display = 'none';
+            } else {
+                document.getElementById('newIdContainer').style.display = 'none';
+                document.getElementById('existingPasswordContainer').style.display = 'block';
+            }
+        };
+
+        document.getElementById('loginButton').onclick = function () {
+            const selectedId = document.getElementById('userIdDropdown').value;
+            const users = getStoredUsers();
+
+            let userId = "";
+            let password = "";
+
+            if (selectedId === "new") {
+                userId = document.getElementById('userId').value.trim();
+                password = document.getElementById('password').value.trim();
+
+                if (!userId) {
+                    document.getElementById('passwordError').textContent = "Please enter a new ID.";
+                    return;
+                }
+                if (!password) {
+                    document.getElementById('passwordError').textContent = "Please enter a password.";
+                    return;
+                }
+
+                const success = addUser(userId, password);
+                if (!success) {
+                    return;
+                }
+
+            } else {
+                userId = selectedId;
+                password = document.getElementById('passwordExisting').value.trim();
+
+                if (!password || password !== users[selectedId]) {
+                    document.getElementById('passwordError').textContent = "Incorrect password. Please try again.";
+                    return;
+                }
+            }
+
+            localStorage.setItem('userId', userId);
+
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('quiz-container').style.display = 'block';
+
+            document.getElementById('result').innerHTML = '';
+            loadProgressLocal();
+            displayMasteryLevels();
+        };
+
+        function saveProgressLocal() {
+            const userId = localStorage.getItem('userId');
+            if (!userId) return;
+
+            const currentQuestion = questions[currentQuestionIndex];
+            const userProgress = JSON.parse(localStorage.getItem('quizProgress_' + userId)) || [];
+
+            userProgress.push({
+                soal: currentQuestion.question,
+                correct: isAnswered ? 1 : 0,
+                attempts: 1,
+                masteryLevel: calculateMasteryLevel(isAnswered ? 1 : 0)
+            });
+
+            localStorage.setItem('quizProgress_' + userId, JSON.stringify(userProgress));
+        }
+
+        function loadProgressLocal() {
+            const userId = localStorage.getItem('userId');
+            if (!userId) return;
+
+            const userProgress = JSON.parse(localStorage.getItem('quizProgress_' + userId)) || [];
+            return userProgress;
+        }
+
+        document.getElementById('submit').onclick = function () {
+            const userAnswer = document.getElementById('response').value.trim();
+
+            // Disable submit if input is empty
+            if (!userAnswer) {
+                alert('Please enter an answer before submitting.');
+                return;
+            }
+
+            // Ensure input is in Hiragana for hiragana-type questions
+            const currentQuestion = questions[currentQuestionIndex];
+            if (currentQuestion.type === 'hiragana' && !wanakana.isHiragana(userAnswer)) {
+                alert('Please enter Hiragana characters only.');
+                return;
+            }
+
+            // If the answer has been checked, move to the next question
+            if (isAnswered) {
+                currentQuestionIndex++;
+                isAnswered = false;  // Reset for the next question
+                loadQuestion();  // Load the next question
+            } else {
+                // Check the current answer
+                checkAnswer();
+            }
+        };
+
+        document.getElementById('home').onclick = function () {
+            questions = [];
+            currentQuestionIndex = 0;
+            correctAnswersCount = 0;
+            retryQuestions = [];
+            isAnswered = false;
+            document.getElementById('title').style.display = 'block';
+            document.getElementById('start').style.display = 'block';
+            document.getElementById('mastery-levels').style.display = 'block';
+            document.getElementById('home').style.display = 'none';
+            document.getElementById('question').style.display = 'none';
+            document.getElementById('answer').style.display = 'none';
+            document.getElementById('submit').style.display = 'none';
+            document.getElementById('kanji-list').style.display = 'none';
+            document.getElementById('result').innerHTML = '';
+        };
+
+        function getRandomKanji(data, count) {
+            let shuffled = data.sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);  // Hanya ambil sesuai dengan jumlah kanji yang diinginkan
+        }
+
+        function fetchQuestions() {
+            fetch('https://script.google.com/macros/s/AKfycbyWfwIaL_pzc6nrTS-0wEv1C4c1xbf9zIysGx_104gr6U6aXwDSGQhzeBwSAPhi_CGm/exec')
+                .then(response => response.json())
+                .then(data => {
+                    // Hanya pilih data yang memiliki question dan hiraganaAnswer yang valid
+                    let filteredData = data.filter(item => item.question && item.hiraganaAnswer);
+                    let uniqueKanji = getRandomKanji(filteredData, maxKanji); console.log(uniqueKanji);
+                    processQuestions(uniqueKanji);
+                    displayKanjis(uniqueKanji); // Display the selected Kanjis
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        }
+
+        function processQuestions(uniqueKanji) {
+            questions = [];
+
+            uniqueKanji.forEach(item => {
+                if (item.question && item.hiraganaAnswer) {
+                    questions.push({
+                        type: 'hiragana',
+                        question: item.question,
+                        answer: item.hiraganaAnswer.toLowerCase(),
+                        meaning: item.meaningAnswers[0]
+                    });
+
+                    questions.push({
+                        type: 'meaning',
+                        question: item.question,
+                        answers: item.meaningAnswers.map(ans => ans.toLowerCase()),
+                        hiragana: item.hiraganaAnswer.toLowerCase()
+                    });
+                }
+            });
+
+            shuffleArray(questions);
+            loadQuestion();
+        }
+
+        function displayKanjis(kanjis) {
+            const kanjiListElement = document.getElementById('kanji-list');
+            // Display Kanji as a hidden comma-separated list
+            kanjiListElement.innerHTML = kanjis.map(item => item.question).join(', ');
+            kanjiListElement.style.display = 'block';  // Unhide or Hide the kanji list
+        }
+
+        function saveQuizResult() {
+            const userId = localStorage.getItem('userId');
+            if (!userId) {
+                console.error("No user ID found");
+                return;
+            }
+
+            const currentQuestion = questions[currentQuestionIndex];
+            if (!currentQuestion) {
+                console.error("No current question available");
+                return;
+            }
+
+            const url = 'http://localhost:3000/saveQuiz';
+
+            // Prepare the data to be sent
+            const data = {
+                userId: userId,
+                soal: currentQuestion.question,
+                correct: isAnswered ? 1 : 0,
+                attempts: 1,
+                masteryLevel: calculateMasteryLevel(isAnswered ? 1 : 0)
+            };
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Data saved successfully:', data);
+                })
+                .catch(error => console.error('Error saving data:', error));
+        }
+
+        function calculateMasteryLevel(correct) {
+            if (correct >= 250) {
+                return "Fluent";
+            } else if (correct >= 200) {
+                return "Master 1";
+            } else if (correct >= 150) {
+                return "Master 2";
+            } else if (correct >= 100) {
+                return "Master 3";
+            } else if (correct >= 75) {
+                return "Master 4";
+            } else if (correct >= 50) {
+                return "Master 5";
+            } else {
+                return "Beginner";
+            }
+        }
+
+        function displayMasteryLevels() {
+            const userId = localStorage.getItem('userId');
+            const userProgress = JSON.parse(localStorage.getItem('quizProgress_' + userId)) || {};
+
+            const masteryCounts = {
+                "Fluent": 0,
+                "Master 1": 0,
+                "Master 2": 0,
+                "Master 3": 0,
+                "Master 4": 0,
+                "Master 5": 0,
+                "Beginner": 0
+            };
+
+            Object.keys(userProgress).forEach(kanji => {
+                const masteryLevel = userProgress[kanji].masteryLevel;
+                if (masteryLevel >= 6) {
+                    masteryCounts.Fluent++;
+                } else if (masteryLevel >= 5) {
+                    masteryCounts["Master 5"]++;
+                } else if (masteryLevel >= 4) {
+                    masteryCounts["Master 4"]++;
+                } else if (masteryLevel >= 3) {
+                    masteryCounts["Master 3"]++;
+                } else if (masteryLevel >= 2) {
+                    masteryCounts["Master 2"]++;
+                } else if (masteryLevel >= 1) {
+                    masteryCounts["Master 1"]++;
+                } else {
+                    masteryCounts.Beginner++;
+                }
+            });
+
+            let masteryLevels = `⭐ Fluent: ${masteryCounts["Fluent"]} 🥇 Master 1: ${masteryCounts["Master 1"]} 🥈 Master 2: ${masteryCounts["Master 2"]} 🥉 Master 3: ${masteryCounts["Master 3"]} 🏅 Master 4: ${masteryCounts["Master 4"]} 🏆 Master 5: ${masteryCounts["Master 5"]} 🔰 Beginner: ${masteryCounts["Beginner"]}`;
+            document.getElementById('mastery-levels').innerHTML = masteryLevels;
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function loadQuestion() {
+            isAnswered = false;
+            document.getElementById('submit').textContent = "Submit";
+
+            // Check if there are retry questions that should reappear
+            handleRetries();
+
+            // Ensure currentQuestionIndex is valid and questions still exist
+            if (currentQuestionIndex >= questions.length && retryQuestions.length === 0) {
+                document.getElementById('result').innerHTML = "<p style='color:green;'>Quiz Completed!</p>";
+                document.getElementById('question').style.display = 'none';
+                document.getElementById('answer').style.display = 'none';
+                document.getElementById('submit').style.display = 'none';
+                document.getElementById('kanji-list').style.display = 'none';
+                document.getElementById('home').style.display = 'inline-block';  // Show the home button
+                return; // Prevent further processing when no questions are left
+            }
+            if (currentQuestionIndex < questions.length) {
+                const currentQuestion = questions[currentQuestionIndex];
+                document.getElementById('question').textContent = currentQuestion.question;
+                document.getElementById('response').value = ''; // Clear previous input
+                document.getElementById('result').innerHTML = ''; // Clear previous result
+
+                // Set the correct placeholder and input behavior based on the question type
+                if (currentQuestion.type === 'hiragana') {
+                    wanakana.bind(document.getElementById('response'));  // Bind Wanakana for hiragana input
+                    document.getElementById('response').placeholder = 'Type the hiragana';
+                } else if (currentQuestion.type === 'meaning') {
+                    wanakana.unbind(document.getElementById('response'));  // Unbind for meaning input
+                    document.getElementById('response').placeholder = 'Type the meaning';
+                }
+            }
+        }
+
+        function checkAnswer() {
+            if (!questions[currentQuestionIndex]) {
+                console.error("No current question available.");
+                return;
+            }
+
+            const currentQuestion = questions[currentQuestionIndex];
+            const userAnswer = document.getElementById('response').value.trim().toLowerCase();
+            let isCorrect = false;
+
+            if (currentQuestion.type === 'hiragana') {
+                isCorrect = (userAnswer === currentQuestion.answer);
+                if (isCorrect) {
+                    trackKanjiProgress(currentQuestion.question, 'hiragana');
+                }
+            } else if (currentQuestion.type === 'meaning') {
+                if (Array.isArray(currentQuestion.answers)) {
+                    for (let correctAnswer of currentQuestion.answers) {
+                        let similarity = similarityPercentage(userAnswer, correctAnswer);
+                        if (similarity >= 70) {
+                            isCorrect = true;
+                            trackKanjiProgress(currentQuestion.question, 'meaning');
+                            break;
+                        }
+                    }
+                } else {
+                    console.error("Answers array is not defined or not an array.");
+                }
+            }
+
+            if (isCorrect) {
+                document.getElementById('result').innerHTML = "<p style='color:green;'>Correct!</p>";
+                isAnswered = true;
+                saveQuizResult();
+                saveProgressLocal();
+            } else {
+                let correctAnswersDisplay = currentQuestion.answers ? currentQuestion.answers.join(' or ') : "No valid answers";
+                document.getElementById('result').innerHTML = (currentQuestion.type === 'hiragana') ?
+                    `<p style='color:red;'>Wrong. Correct: ${currentQuestion.answer} (Meaning: ${currentQuestion.meaning})</p>` :
+                    `<p style='color:red;'>Wrong. Correct: ${correctAnswersDisplay} (Hiragana: ${currentQuestion.hiragana})</p>`;
+
+                saveQuizResult();
+                saveProgressLocal();
+                retryQuestions.push({ ...currentQuestion, retryAfter: currentQuestionIndex + 1 });
+                isAnswered = true;
+            }
+
+            document.getElementById('submit').textContent = "Next";
+        }
+
+        function trackKanjiProgress(kanji, type) {
+            if (!kanjiProgress[kanji]) {
+                kanjiProgress[kanji] = { hiragana: false, meaning: false };
+            }
+
+            kanjiProgress[kanji][type] = true;
+
+            // Check if both hiragana and meaning are correct for the kanji
+            if (kanjiProgress[kanji].hiragana && kanjiProgress[kanji].meaning) {
+                // Kanji is fully mastered
+                increaseMasteryLevel(kanji);
+            }
+        }
+
+        function increaseMasteryLevel(kanji) {
+            const userId = localStorage.getItem('userId');
+            if (!userId) return;
+
+            let userProgress = JSON.parse(localStorage.getItem('quizProgress_' + userId)) || {};
+
+            if (!userProgress[kanji]) {
+                userProgress[kanji] = { masteryLevel: 0 };
+            }
+
+            userProgress[kanji].masteryLevel += 1;  // Increment mastery level
+            localStorage.setItem('quizProgress_' + userId, JSON.stringify(userProgress));
+        }
+
+
+        function nextQuestion() {
+            if (correctAnswersCount !== currentQuestionIndex + 1) {
+                alert("You need to answer this question correctly to proceed.");
+                return;
+            }
+            currentQuestionIndex++;
+            loadQuestion();
+        }
+
+        function displayCompletionMessage() {
+            document.getElementById('result').innerHTML = "<p style='color:green; font-size:24px;'>Congratulations! 🎉 You've answered all questions correctly!</p>";
+        }
+
+        function handleRetries() {
+            if (retryQuestions.length > 0) {
+                const nextRetryIndex = retryQuestions.findIndex(q => currentQuestionIndex >= q.retryAfter);
+                if (nextRetryIndex > -1) {
+                    const retryQuestion = retryQuestions.splice(nextRetryIndex, 1)[0];
+                    // Insert retry question into the main queue, after the current question
+                    questions.splice(currentQuestionIndex + 1, 0, retryQuestion);
+                }
+            }
+        }
+
+        function similarityPercentage(a, b) {
+            const distance = levenshteinDistance(a, b);
+            const maxLength = Math.max(a.length, b.length);
+            return ((maxLength - distance) / maxLength) * 100;
+        }
+
+
+        function isAnswerCorrect(userAnswer, correctAnswer) {
+            const distance = levenshteinDistance(userAnswer, correctAnswer);
+            return distance <= 2;
+        }
+
+        function levenshteinDistance(a, b) {
+            if (a.length === 0) return b.length;
+            if (b.length === 0) return a.length;
+
+            const matrix = [];
+
+            for (let i = 0; i <= b.length; i++) {
+                matrix[i] = [i];
+            }
+
+            for (let j = 0; j <= a.length; j++) {
+                matrix[0][j] = j;
+            }
+
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1,
+                            Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1)
+                        );
+                    }
+                }
+            }
+
+            return matrix[b.length][a.length];
+        }
+
+        document.getElementById('start').onclick = function () {
+            fetchQuestions();
+            document.getElementById('title').style.display = 'none';
+            document.getElementById('start').style.display = 'none';
+            document.getElementById('mastery-levels').style.display = 'none';
+            document.getElementById('question').style.display = 'block';
+            document.getElementById('answer').style.display = 'block';
+            document.getElementById('submit').style.display = 'block';
+            document.getElementById('home').style.display = 'inline-block';
+        };
+
+        window.onload = function () {
+            populateUserIdDropdown();
+            document.getElementById('themeToggle').style.display = 'block';
+            document.getElementById('themeToggle').addEventListener('click', function (event) {
+                if (event.target.tagName === 'IMG') {
+                    const currentTheme = document.body.getAttribute('data-theme');
+                    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                    document.body.setAttribute('data-theme', newTheme);
+                    const themeIcon = newTheme === 'light'
+                        ? 'https://img.icons8.com/?size=100&id=H3yHeysB1dxv&format=png&color=000000'
+                        : 'https://img.icons8.com/?size=100&id=HCLEhP6n0Ksr&format=png&color=000000';
+                    document.getElementById('themeToggle').innerHTML = '<img src="' + themeIcon + '" alt="Theme Toggle">';
+                }
+            });
+
+            // If the quiz container is displayed immediately (on refresh), load the first question and set the placeholder correctly
+            if (document.getElementById('quiz-container').style.display === 'block') {
+                loadQuestion();  // Load the first question
+            }
+        };
+
+        document.getElementById("response").addEventListener("keypress", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+
+                const userAnswer = document.getElementById('response').value.trim();
+
+                // Disable enter if input is empty
+                if (!userAnswer) {
+                    alert('Please enter an answer before submitting.');
+                    return;
+                }
+
+                // Ensure input is in Hiragana for hiragana-type questions
+                const currentQuestion = questions[currentQuestionIndex];
+                if (currentQuestion.type === 'hiragana' && !wanakana.isHiragana(userAnswer)) {
+                    alert('Please enter Hiragana characters only.');
+                    return;
+                }
+
+                // Trigger the submit button click event
+                document.getElementById('submit').click();
+            }
+        });
+
+    </script>
+</body>
+
+</html>
