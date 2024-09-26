@@ -6,21 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kuis Vocabulary</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: env(safe-area-inset-top);
-            padding-top: 10px;
-            height: 100vh;
-            display: flex;
-            justify-content: space-between;
-            flex-direction: column;
-            transition: background-color 0.3s, color 0.3s;
-            box-sizing: border-box;
-        }
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding-top: env(safe-area-inset-top, 20px);
+    height: 100vh;
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+    transition: background-color 0.3s, color 0.3s;
+    box-sizing: border-box;
+}
 
         :root {
             --bg-color: #333;
@@ -44,15 +43,31 @@
             color: var(--text-color);
         }
 
-        #question {
-            font-size: 10vw;
-            margin-bottom: 20px;
-            color: #fff;
-            background-color: #7a1fc7;
-            padding: 50px;
-            border-radius: 8px;
-            display: none;
-        }
+#question {
+    font-size: 10vw;
+    margin-bottom: 20px;
+    color: #fff;
+    background-color: #7a1fc7;
+    padding: 50px;
+    border-radius: 8px;
+    display: none;
+}
+
+        @media screen and (min-width: 1024px) {
+    #question {
+        font-size: 100px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    body {
+        padding-top: 30px;
+    }
+
+    #question {
+        font-size: 8vw;
+    }
+}
 
         #answer,
         #submit {
