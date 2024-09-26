@@ -12,12 +12,14 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 0;
+            padding: env(safe-area-inset-top);
+            padding-top: 10px;
             height: 100vh;
             display: flex;
             justify-content: space-between;
             flex-direction: column;
             transition: background-color 0.3s, color 0.3s;
+            box-sizing: border-box;
         }
 
         :root {
@@ -58,7 +60,7 @@
         }
 
         #title {
-            font-size: 100px;
+            font-size: 10vw;
             margin-bottom: 20px;
             color: #7a1fc7;
             font-weight: bold;
